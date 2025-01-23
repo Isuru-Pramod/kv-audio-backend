@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema({
     phone :{
         type : String,
         required : true
+    },
+    profilePic : {
+        type : String,
+        required : true,
+        default : "https://isobarscience.com/wp-content/uploads/2020/09/default-profile-picture1.jpg"
     }
 
 });

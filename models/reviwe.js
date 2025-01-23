@@ -22,6 +22,16 @@ const reviewSchema = new mongoose.Schema({
         type : Date,
         required : true,
         default : Date.now()
+    },
+    isApproved : {
+        type : Boolean,
+        required : true,
+        default : false
+    },
+    profilePic : {
+    type : String,
+    required : true,
+    default : "https://isobarscience.com/wp-content/uploads/2020/09/default-profile-picture1.jpg"
     }
 })
 

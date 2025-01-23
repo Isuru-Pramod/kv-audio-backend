@@ -38,6 +38,8 @@ export function loginUser(req,res){
                     role : user.role,
                     email : user.email
                 },process.env.JWT_SECREE)
+
+                
                 res.json({message : "Login succesfull", token : token});
             }else{
                 res.status(401).json({error : "Login failed, Password or email is incorrect"});
