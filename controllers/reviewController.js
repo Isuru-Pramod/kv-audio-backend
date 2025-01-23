@@ -40,6 +40,18 @@ export function getReview(req,res){
             res.json(Reviews);
         })
     }
-
 }
+
+export function deleteReview (req,res){
+    const email = req.params.email;
+
+    Review.deleteOne({email : email}).then(()=>{
+        res.json({message : "Review deleted"})
+    }).catch(()=>{
+        res.status(500).json({
+            error : "Review deletion dailed"
+        });
+    })
+}
+
 
