@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 export function registerUser(req,res){
 
@@ -36,7 +37,7 @@ export function loginUser(req,res){
                     lastName : user.lastName,
                     role : user.role,
                     email : user.email
-                },"Isuru_2005")
+                },process.env.JWT_SECREE)
                 res.json({message : "Login succesfull", token : token});
             }else{
                 res.status(401).json({error : "Login failed, Password or email is incorrect"});

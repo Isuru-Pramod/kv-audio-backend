@@ -19,7 +19,7 @@ app.use((req,res,next) => {
     let token = req.header("Authorization");
     if (token != null){
         token = token.replace("Bearer ","");
-        jwt.verify(token, "Isuru_2005", (err, decoded)=> {
+        jwt.verify(token, process.env.JWT_SECREE, (err, decoded)=> {
             if (!err){
                 req.user = decoded;
             }
@@ -29,7 +29,7 @@ app.use((req,res,next) => {
     next();
 })
 
-let mongoUrl = process.env.mongu_URL;
+let mongoUrl = process.env.MONGU_URL;
 
 mongoose.connect(mongoUrl);
 
