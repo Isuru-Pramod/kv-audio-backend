@@ -5,20 +5,36 @@ import dotenv from "dotenv";
 
 export function registerUser(req,res){
 
+    try{
+        const data = req.body;
+        let isAdmin = true;
 
-    const data = req.body;
+    if ( data.role == "admin"){
+        if (req.user == null || req.user.role != "admin"){
+            res.status(403).json({message : "only admins can create admin accounts"})
+            isAdmin = false;
+        }
+    }
+    
 
-    data.password = bcrypt.hashSync(data.password,10);
+    if (isAdmin){
+        data.password = bcrypt.hashSync(data.password,10);
 
-    const newUser = new User(data);
+        const newUser = new User(data);
+    
+        newUser.save().then(()=>{
+            res.json({ message : "User registered successfully"});
+        }).catch((error)=>{
+            res.Status(500).json({message : "User registered failed"});
+        })
+    }
 
-    newUser.save().then(()=>{
-        res.json({ message : "User registered successfully"});
-    }).catch((error)=>{
-        res.Status(500).json({message : "User registered failed"});
-    })
-
+    }catch{
+        res.json({message : "error occurred. registetion failed"})
+    }
 }
+
+
 
 export function loginUser(req,res){
     const data = req.body;
