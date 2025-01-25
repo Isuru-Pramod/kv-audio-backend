@@ -1,0 +1,41 @@
+import mongoose from "mongoose";
+
+const inquirySchema = new mongooseq.Schema({
+    id : {
+        type : Number,
+        required : true,
+        unique : true
+    },
+    email : {
+        type :String,
+        required : true,
+        unique : true
+    },
+    message : {
+        type : String,
+        required : true
+    },
+    phone :{
+        type : String,
+        required : true
+    },
+    date : {
+        type : Date,
+        required : true,
+        defalut : Date.now()
+    },
+    response : {
+        type : String,
+        required : false,
+        default : ""
+    },
+    isResolved : {
+        type : Boolean,
+        required : true,
+        default : false
+    }
+})
+
+const Inquiry = mongoose.model("Inquiry",inquirySchema);
+
+export default inquiry;
