@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const inquirySchema = new mongooseq.Schema({
+const inquirySchema = new mongoose.Schema({
     id : {
         type : Number,
         required : true,
@@ -22,7 +22,7 @@ const inquirySchema = new mongooseq.Schema({
     date : {
         type : Date,
         required : true,
-        defalut : Date.now()
+        default : Date.now()
     },
     response : {
         type : String,
@@ -38,4 +38,4 @@ const inquirySchema = new mongooseq.Schema({
 
 const Inquiry = mongoose.model("Inquiry",inquirySchema);
 
-export default inquiry;
+export default Inquiry;

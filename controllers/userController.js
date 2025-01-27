@@ -53,7 +53,8 @@ export function loginUser(req,res){
                     lastName : user.lastName,
                     role : user.role,
                     email : user.email,
-                    profilePic : user.profilePic
+                    profilePic : user.profilePic,
+                    phone : user.phone
                 },process.env.JWT_SECREE)
 
                 
@@ -82,7 +83,7 @@ export function isItCustomer(req){
     let isCustomer = false;
 
     if (req.user != null){
-        if (req.user.role == "Customer"){
+        if (req.user.role == "customer"){
             isCustomer = true;
         }
     }
