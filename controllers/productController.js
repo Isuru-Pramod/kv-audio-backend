@@ -3,6 +3,7 @@ import { isItAdmin } from "./userController.js";
 
 export function addProduct (req,res){
     console.log(req.user);
+    console.log(req.body);
 
     if (req.user == null){
         res.status(401).json({
@@ -24,7 +25,7 @@ export function addProduct (req,res){
     newProduct.save().then(()=>{
         res.json({message : "Product added succesfully"});
     }).catch((error)=>{
-        res.status(500).json({error : "Product adition failed"});
+        res.status(500).json({message : "Product adition failed"});
     });
 }
 

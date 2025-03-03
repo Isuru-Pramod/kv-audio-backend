@@ -19,11 +19,11 @@ const productSchema = new mongoose.Schema({
         required : true,
         default : "uncaregorized"
     },
-    dimension : {
+    dimensions : {
         type : String,
         required : true
     },
-    discription : {
+    description : {
         type : String,
         required : true
     },
