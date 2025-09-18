@@ -1,4 +1,4 @@
-import product from "../models/product.js";
+import Product from "../models/product.js";
 import { isItAdmin } from "./userController.js";
 
 export function addProduct (req,res){
@@ -20,7 +20,7 @@ export function addProduct (req,res){
 
 
     const data = req.body;
-    const newProduct = new product(data);
+    const newProduct = new Product(data);
 
     newProduct.save().then(()=>{
         res.json({message : "Product added succesfully"});
@@ -34,11 +34,11 @@ export async function  getProducts(req,res){
     
     try{
         if (isItAdmin(req)){
-            const products = await product.find();
+            const products = await Product.find();
             res.json(products);
             return;
         }else{
-            const products = await product.find({"availability": true,});
+            const products = await Product.find({"availability": true,});
             res.json(products);
             return;
         }
@@ -55,7 +55,7 @@ export async function updateProducts(req,res){
             const key = req.params.key;
             const data = req.body;
 
-            await product.updateOne({key:key},data);
+            await Product.updateOne({key:key},data);
             res.json({
                 message : "Product updated successfully "
             })
@@ -76,7 +76,7 @@ export async function deleteProducte (req,res){
             const key = req.params.key;
             const data = req.body;
 
-            await product.deleteOne({key:key})
+            await Product.deleteOne({key:key})
             res.json({
                 message : "Product deleted successfully "
             }) 
@@ -87,4 +87,22 @@ export async function deleteProducte (req,res){
     }catch(e){
         res.status(500).json({message : "Failed to delete product"})
     }
+}
+
+export async function getProduct(req,res) {
+    try{
+        const key = req.params.key;
+        const pro = await Product.findOne({key:key});
+        if(pro == null){
+            res.status(404).json({
+                message : "Product not found"
+            });
+            return;
+        }
+        res.json(pro);
+        return;
+    }catch{
+        res.status(500).json({message : "Failed to get product"});
+    }
+    
 }
