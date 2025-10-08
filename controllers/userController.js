@@ -46,6 +46,11 @@ export function loginUser(req,res){
             res.status(404).json({message : "User not found"})
         }else{
 
+            if (user.isBlocked){
+                res.status(403).json({error : "your account is blocked please contact admin"});
+                return;
+            }
+
             const isPasswordCorrect = bcrypt.compareSync(data.password,user.password);
             if (isPasswordCorrect){
                 const token = jwt.sign({
@@ -97,4 +102,43 @@ export async function getAllUsers(req,res) {
     }else{
         res.status(403).json({message : "You are not an admin"});
     }
+}
+
+export async function blockOrUnblockUser(req,res) {
+    const email = req.params.email;
+
+    if (isItAdmin(req)){
+        try{
+        const user = await User.findOne(
+            {
+                email : email
+            }
+        );
+
+        if (user == null){
+            res.status(404).json({error : "User not found"});
+            return;
+        }
+
+        const isBlocked = !user.isBlocked;
+
+        await User.updateOne(
+            {
+                email : email
+            },
+            {
+                isBlocked : isBlocked
+            }
+        );
+
+        res.json({message : "User blocked/unblocked successfully"});
+
+        }catch{
+            res.status(500).json({error : "User not found"});
+        }    
+        
+    }else{
+        res.status(403).json({message : "You are not an admin"});
+    }
+        
 }
