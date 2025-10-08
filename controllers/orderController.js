@@ -81,7 +81,8 @@ export async function creatOrder(req,res){
 }
 
 export async function getQuote(req,res) {
-        const data = req.body;
+
+    const data = req.body;
     const orderInfo ={
         orderedItems : []
     }
@@ -129,7 +130,7 @@ export async function getQuote(req,res) {
 
     try {
         res.json({
-            message : "Order created successfully", 
+            message : "Order quatation", 
             total : orderInfo.totalAmount,
         });
     } catch (error) {

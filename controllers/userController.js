@@ -89,3 +89,12 @@ export function isItCustomer(req){
     }
     return isCustomer;
 }
+
+export async function getAllUsers(req,res) {
+    if (isItAdmin(req)){
+        const users = await User.find({role : "customer"}).select("-password");
+        res.json(users);
+    }else{
+        res.status(403).json({message : "You are not an admin"});
+    }
+}
