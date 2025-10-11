@@ -1,6 +1,7 @@
 import e from "express";
 import Product from "../models/product.js";
 import Order from "../models/order.js";
+import { isItAdmin, isItCustomer } from "./userController.js";
 
 export async function creatOrder(req,res){
     const data = req.body;
@@ -136,5 +137,29 @@ export async function getQuote(req,res) {
     } catch (error) {
         console.log(error);
         res.status(500).json({message : "Order creation faild 2"});
+    }
+}
+
+export async function getOrders(req,res){
+
+    if (isItCustomer(req)){
+        try {
+            const orders = await Order.find({email : req.user.email}); 
+            res.json(orders);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({message : "faild to get orders"});
+        }
+
+    }else if (isItAdmin(req)){
+        try {
+            const orders = await Order.find(); 
+            res.json(orders);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({message : "faild to get orders"});
+        }
+    }else{
+        res.status(403).json({message : "you are not authorized to perform this action"});
     }
 }
