@@ -163,3 +163,29 @@ export async function getOrders(req,res){
         res.status(403).json({message : "you are not authorized to perform this action"});
     }
 }
+
+export async function approveOrRejectOrder(req,res){
+    const orderId = req.params.orderId;
+    const status = req.body.status;
+
+    if(isItAdmin(req)){
+        try{
+            const order = await Order.findOne({orderId : orderId});
+
+            if (order == null){
+                res.status(404).json({message : "Order not found"});
+                return
+            }
+
+            await Order.updateOne({orderId : orderId},{status : status});
+            res.json({message : "Order approved/rejected successfully"});
+        }catch(e){
+            console.log(e);
+            res.status(500).json({message : "Order status update failed"});
+        }
+
+    }else{
+        res.status(403).json({message : "you are not authorized to perform this action"});
+    }
+
+}

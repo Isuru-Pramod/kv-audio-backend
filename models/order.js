@@ -57,7 +57,7 @@ const orderSchema = new mongoose.Schema({
         required : true
     },
     isApproved : {
-        type : String,
+        type : Boolean,
         required : true,
         default : false
     },
