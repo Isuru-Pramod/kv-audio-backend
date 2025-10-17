@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import axios from "axios";
 
 export function registerUser(req,res){
 
@@ -150,4 +151,57 @@ export function getUser(req,res){
         res.status(401).json({message : "You are not logged in"}); 
     }
 
+}
+
+export async function loginWithGoogle(req,res){
+    //https://www.googleapis.com/oauth2/v3/userinfo
+    const accessToken = req.body.accessToken;
+    console.log(accessToken);
+    try{
+    const response = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo",{
+        headers : {
+            Authorization : `Bearer ${accessToken}`
+        }
+    });
+    console.log(response.data);
+    const user = await User.findOne({email : response.data.email,});
+
+    if (user != null){
+                    const token = jwt.sign({
+                    firstName : user.firstName,
+                    lastName : user.lastName,
+                    role : user.role,
+                    email : user.email,
+                    profilePic : user.profilePic,
+                    phone : user.phone
+                },process.env.JWT_SECREE)
+
+                
+                res.json({message : "Login succesfull", token : token, user : user});
+    }else{
+        const newUser = new User({
+            email : response.data.email,
+            password : "123",
+            firstName : response.data.given_name,
+            lastName : response.data.family_name,
+            profilePic : response.data.picture,
+            address : "Not Given",
+            phone : "Not Given",
+        });
+        const savedUser = await newUser.save();
+        const token = jwt.sign({
+            firstName : savedUser.firstName,
+            lastName : savedUser.lastName,
+            email : savedUser.email,
+            role : savedUser.role,
+            profilePic : savedUser.profilePic,
+            phone : savedUser.phone
+        },process.env.JWT_SECREE);
+
+        res.json({message : "Login succesfull", token : token, user : savedUser});
+    }
+    }catch(e){
+        console.log(e);
+        res.status(500).json({message : "Failed to login with google"});
+    }
 }
