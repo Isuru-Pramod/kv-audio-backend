@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true,
         default : "https://isobarscience.com/wp-content/uploads/2020/09/default-profile-picture1.jpg"
+    },
+    emailVerified : {
+        type : Boolean,
+        required : true,
+        default : false
     }
 
 });

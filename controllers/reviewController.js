@@ -19,7 +19,9 @@ export async function addReview(req,res){
         await newReview.save();
         res.json({message : "review added successfully"});
     }catch(error){
-        res.status(500).json({error : "Review addition failed"});
+        res.status(500).json({error : "you already have a review"});
+        console.log(error);
+
     }
 }
 

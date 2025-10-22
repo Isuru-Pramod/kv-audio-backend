@@ -6,7 +6,7 @@ export async function addInquiry(req,res){
         if (isItCustomer(req)){
             const data = req.body;
             data.email = req.user.email;
-            data .phone = req.user.phone;
+            data.phone = req.user.phone;
 
             let id = 0;
 

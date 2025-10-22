@@ -3,6 +3,21 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import axios from "axios";
+import nodemailer from "nodemailer";
+import OTP from "../models/otp.js";
+dotenv.config();
+
+const transport = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: "mdipromod@gmail.com",
+        pass: "uqxyszeqghdslqvd",
+    },
+
+})
 
 export function registerUser(req,res){
 
@@ -60,7 +75,8 @@ export function loginUser(req,res){
                     role : user.role,
                     email : user.email,
                     profilePic : user.profilePic,
-                    phone : user.phone
+                    phone : user.phone,
+                    emailVerified : user.emailVerified
                 },process.env.JWT_SECREE)
 
                 
@@ -173,7 +189,8 @@ export async function loginWithGoogle(req,res){
                     role : user.role,
                     email : user.email,
                     profilePic : user.profilePic,
-                    phone : user.phone
+                    phone : user.phone,
+                    emailVerified : true
                 },process.env.JWT_SECREE)
 
                 
@@ -187,6 +204,7 @@ export async function loginWithGoogle(req,res){
             profilePic : response.data.picture,
             address : "Not Given",
             phone : "Not Given",
+            emailVerified : true,
         });
         const savedUser = await newUser.save();
         const token = jwt.sign({
@@ -195,7 +213,7 @@ export async function loginWithGoogle(req,res){
             email : savedUser.email,
             role : savedUser.role,
             profilePic : savedUser.profilePic,
-            phone : savedUser.phone
+            phone : savedUser.phone,
         },process.env.JWT_SECREE);
 
         res.json({message : "Login succesfull", token : token, user : savedUser});
@@ -204,4 +222,67 @@ export async function loginWithGoogle(req,res){
         console.log(e);
         res.status(500).json({message : "Failed to login with google"});
     }
+}
+
+export async function sendOTP(req,res) {
+    if (req.user == null){
+        res.status(403).json({message : "Unauthorized"});
+        return;
+    }
+    const otp = Math.floor(Math.random() * 9000) + 1000;
+    const newOTP = new OTP({
+        email : req.user.email, 
+        otp : otp
+    });
+    await newOTP.save();
+
+    const message = {
+        from : "mdipromod@gmail.com",
+        to : req.user.email,
+        subject : "Validating OTP",
+        text : "Your otp code is " +otp
+    }
+
+    transport.sendMail(message,(err, info) => {
+        if (err){
+            console.log(err);
+            res.status(500).json({message : "Failed to send OTP"});
+        }else{
+            console.log(info);
+            res.json({message : "OTP sent successfully"});
+        }
+    });
+}
+
+export async function verifyOTP(req,res) {
+    if (req.user == null){
+        res.status(403).json({error : "Unauthorized"});
+        return;
+    }
+    const code = req.body.code;
+    const otp = await OTP.findOne({
+        email : req.user.email,
+        otp : code
+    });
+
+    if (otp == null){
+        res.status(404).json({error : "Invalid OTP"});
+        return;
+    }else{
+        await OTP.deleteOne({
+            email : req.user.email,
+            otp : code
+        });
+
+        await User.updateOne({
+            email : req.user.email
+        },
+        {
+            emailVerified : true
+        });
+
+        res.status(200).json({message : "OTP verified successfully"});
+
+    }
+
 }
