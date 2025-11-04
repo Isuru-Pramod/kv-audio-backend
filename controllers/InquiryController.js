@@ -1,130 +1,109 @@
 import Inquiry from "../models/inquiry.js";
 import { isItAdmin, isItCustomer } from "./userController.js";
 
-export async function addInquiry(req,res){
-    try{
-        if (isItCustomer(req)){
+export async function addInquiry(req, res) {
+    try {
+        if (isItCustomer(req)) {
             const data = req.body;
             data.email = req.user.email;
             data.phone = req.user.phone;
 
             let id = 0;
-
-            const inquiries = await Inquiry.find().sort({id:-1}).limit(1);
-
-            if (inquiries.length == 0){
-                id = 1;
-            }else{
-                id = inquiries[0].id + 1;
-            }
+            const inquiries = await Inquiry.find().sort({ id: -1 }).limit(1);
+            id = inquiries.length === 0 ? 1 : inquiries[0].id + 1;
 
             data.id = id;
+            data.reply = ""; // default empty reply
+            data.repliedAt = null;
 
             const newInquiry = new Inquiry(data);
             const response = await newInquiry.save();
 
-            res.json({ message : " Inquiry add successfully", id : response.id})
-        }else{
-            res.status(403).json({message : "you are not an customer"})
+            res.json({ message: "Inquiry added successfully", id: response.id });
+        } else {
+            res.status(403).json({ message: "You are not a customer" });
         }
-    }catch{
-        res.status(500).json({message : "Failed to add inquiry"})
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to add inquiry" });
     }
 }
 
-export async function getInquiry(req,res){
-    try{
-        if (isItCustomer(req)){
-            const inquiries = await Inquiry.find({email : req.user.email});
+export async function getInquiry(req, res) {
+    try {
+        if (isItCustomer(req)) {
+            const inquiries = await Inquiry.find({ email: req.user.email });
             res.json(inquiries);
-            return;
-        }else if (isItAdmin(req)){
+        } else if (isItAdmin(req)) {
             const inquiries = await Inquiry.find();
             res.json(inquiries);
-            return;
-        }else{
-            res.status(403).json({message : "you are not authorized to perform this action"})
-            return;
+        } else {
+            res.status(403).json({ message: "You are not authorized to perform this action" });
         }
-    }catch{
-        res.status(500).json({
-            message : "Failed to get inquiries "
-        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to get inquiries" });
     }
 }
 
-export async function deleteInquiry(req,res){
-    try{
-        if (isItAdmin(req)){
-            const id = req.params.id;
-
-            await Inquiry.deleteOne({id : id})
-            res.json({message : "Inquiry deleted successsfully"})
-            return;
-        }else if (isItCustomer(req)) {
-            const id = req.params.id;
-
-            const inquiry = await Inquiry.findOne({id : id})
-            if (inquiry == null){
-                res.json({message : "Inquiry not found"})
+export async function deleteInquiry(req, res) {
+    try {
+        const id = req.params.id;
+        if (isItAdmin(req)) {
+            await Inquiry.deleteOne({ id });
+            res.json({ message: "Inquiry deleted successfully" });
+        } else if (isItCustomer(req)) {
+            const inquiry = await Inquiry.findOne({ id });
+            if (!inquiry) {
+                res.status(404).json({ message: "Inquiry not found" });
                 return;
-            }else{
-                if(inquiry.email == req.user.email){
-                    await Inquiry.deleteOne({id : id})
-                    res.json({message : "Inquiry deleted successfully"})
-                    return;
-                }else{
-                    res.status(403).json({
-                        message : "You are not authorized to perform this action"
-                    })
-                    return;
-                }
             }
-        }else{
-            res.status(403).json({message : "You are not authorized to perform this action"})
-            return;
+            if (inquiry.email === req.user.email) {
+                await Inquiry.deleteOne({ id });
+                res.json({ message: "Inquiry deleted successfully" });
+            } else {
+                res.status(403).json({ message: "You are not authorized to delete this inquiry" });
+            }
+        } else {
+            res.status(403).json({ message: "You are not authorized to perform this action" });
         }
-    }catch{
-        res.status(500).json({message : "faild to delete inquiry"})
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to delete inquiry" });
     }
 }
 
-export async function updateInquiry(req,res){
-    try{
-        if (isItAdmin(req)){
-            const data = req.body;
-            await Inquiry.updateOne({id : req.params.id},data)
-            res.json({message : "Inquiry updated successfully "})
-            return;
-        }else if (isItCustomer(req)){
-            const data = req.body;
-            const inquiry = await Inquiry.findOne({id : req.params.id})
+export async function updateInquiry(req, res) {
+    try {
+        const id = req.params.id;
+        const data = req.body;
 
-            if(inquiry == null){
-                res.status(404).json({message : "Inquiry not fount"})
+        if (isItAdmin(req)) {
+            // Admin can update reply and status
+            const updateData = {
+                reply: data.reply || "",
+                repliedAt: new Date(),
+            };
+            await Inquiry.updateOne({ id }, updateData);
+            res.json({ message: "Admin reply added successfully" });
+        } else if (isItCustomer(req)) {
+            // Customer can only update their own inquiry message
+            const inquiry = await Inquiry.findOne({ id });
+            if (!inquiry) {
+                res.status(404).json({ message: "Inquiry not found" });
                 return;
-            }else{
-                if (inquiry.email == req.user.email){
-
-
-                    await Inquiry.updateOne({id : req.params.id},{message: data.message})
-                    res.json({message : "Inquiry updated successfully(cus) "})
-                    return;
-                }else{
-                    res.status(403).json({message : "You are not authorized to perform this action"})
-                    return;
-                }
             }
-
-        }else{
-            res.status(403).json({message : "You are not authorized to perform this action"})
-            return;
+            if (inquiry.email === req.user.email) {
+                await Inquiry.updateOne({ id }, { message: data.message });
+                res.json({ message: "Inquiry updated successfully (customer)" });
+            } else {
+                res.status(403).json({ message: "You are not authorized to perform this action" });
+            }
+        } else {
+            res.status(403).json({ message: "You are not authorized to perform this action" });
         }
-    }catch{
-        res.status(500).json({
-            message : "Failed to update inquiry"
-        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to update inquiry" });
     }
 }
-
-
